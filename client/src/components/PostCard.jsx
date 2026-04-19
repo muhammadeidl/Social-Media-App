@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const reactions = ["👍", "❤️", "😂", "😲", "😢", "😡"];
 
-const PostCard = ({ post, onPostDeleted, onPostUnliked }) => {
+const PostCard = ({ post, onPostDeleted, onPostUnliked, onPostUnsaved }) => {
   const navigate = useNavigate();
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const currentUser = useSelector((state) => state.user.value);
@@ -34,7 +34,10 @@ const PostCard = ({ post, onPostDeleted, onPostUnliked }) => {
   // تحديد التفاعل الحالي للمستخدم عند تحميل المنشور
   const userExistingReaction = currentUser?._id ? reactionsMap[currentUser._id] : null;
 
-  const [isSaved, setIsSaved] = useState(false);
+  // تحديد حالة الحفظ من بيانات المستخدم الحالي مباشرة
+  const [isSaved, setIsSaved] = useState(
+    () => Array.isArray(currentUser?.saved_posts) && currentUser.saved_posts.includes(post?._id)
+  );
 
   const [showComments, setShowComments] = useState(false);
   const [commentsCount, setCommentsCount] = useState(post?.comments_count || 0);
@@ -73,10 +76,10 @@ const PostCard = ({ post, onPostDeleted, onPostUnliked }) => {
   if (!post) return null;
 
   useEffect(() => {
-    if (currentUser?.saved_posts?.includes(post._id)) {
-      setIsSaved(true);
+    if (currentUser?.saved_posts) {
+      setIsSaved(currentUser.saved_posts.includes(post._id));
     }
-  }, [currentUser, post._id]);
+  }, [currentUser?.saved_posts, post._id]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -151,8 +154,13 @@ const PostCard = ({ post, onPostDeleted, onPostUnliked }) => {
           );
 
           if(data.success) {
-              setIsSaved(!isSaved);
+              const newSavedState = !isSaved;
+              setIsSaved(newSavedState);
               toast.success(data.message);
+              // إذا ألغى الحفظ → أخبر الصفحة الأم لإخفاء المنشور فوراً
+              if (!newSavedState && onPostUnsaved) {
+                onPostUnsaved(post._id);
+              }
           } else {
               toast.error(data.message);
           }
