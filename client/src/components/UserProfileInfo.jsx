@@ -111,7 +111,7 @@ const UserProfileInfo = ({ user, posts = [], profileId, setShowEdit, refreshData
 
             <span className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4" />
-              <span>Joined {moment(user?.createdAt).fromNow()}</span>
+              <span>Joined {moment(user?.createdAt).format("DD.MM.YYYY")}</span>
             </span>
           </div>
 
