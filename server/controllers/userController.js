@@ -5,7 +5,7 @@ import fs from "fs";
 import Connection from "../models/Connection.js";
 import Post from "../models/post.js";
 import Notification from "../models/notification.js";
-import { sendEvent } from "../utils/sse.js";
+import { sendEvent, isUserOnline } from "../utils/sse.js";
 
 //get user data using userId
 
@@ -337,6 +337,11 @@ export const getUserProfile = async (req, res) => {
       return res.json({ success: false, message: "Profile not found" });
     }
 
+    // Add online status
+    const profileObj = profile.toObject();
+    profileObj.isOnline = isUserOnline(profileId);
+    // lastSeen will already be in profile from DB
+    
     const posts = await Post.find({ user: profileId })
       .populate("user")
       .populate({ path: "repost_of", populate: { path: "user" } })
@@ -347,7 +352,7 @@ export const getUserProfile = async (req, res) => {
       .populate({ path: "repost_of", populate: { path: "user" } })
       .sort({ createdAt: -1 });
     
-    res.json({ success: true, profile, posts, likedPosts });
+    res.json({ success: true, profile: profileObj, posts, likedPosts });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });

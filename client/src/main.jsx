@@ -7,16 +7,23 @@ import { ClerkProvider } from "@clerk/clerk-react";
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 import { Provider } from "react-redux";
 import { store } from "./app/store.js";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
 }
 
 createRoot(document.getElementById("root")).render(
-  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+  <ClerkProvider 
+    publishableKey={PUBLISHABLE_KEY}
+    signInForceRedirectUrl="/"
+    signUpForceRedirectUrl="/"
+  >
     <BrowserRouter>
       <Provider store={store}>
-        <App />
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
       </Provider>
     </BrowserRouter>
   </ClerkProvider>

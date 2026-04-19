@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Feed from "./pages/Feed";
 import Messages from "./pages/Messages";
@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import CreatePost from "./pages/CreatePost";
 import Layout from "./pages/Layout";
 import Notifications from "./pages/Notifications";
+import Loading from "./components/Loading";
 
 import { useUser, useAuth } from "@clerk/clerk-react";
 import toast, { Toaster } from "react-hot-toast";
@@ -20,7 +21,7 @@ import { addMessage } from "./features/messages/messagesSlice.js";
 import { fetchNotifications, addNotification } from "./features/notifications/notificationsSlice.js";
 
 const App = () => {
-  const { user } = useUser();
+  const { isLoaded, user } = useUser();
   const { getToken } = useAuth();
   const { pathname } = useLocation();
   const pathnameRef = useRef(pathname);
@@ -86,10 +87,14 @@ const App = () => {
     }
   }, [user, dispatch]);
 
+  if (!isLoaded) return <Loading />;
+
   return (
     <>
       <Toaster position="top-right" />
       <Routes>
+        <Route path="/sign-in" element={user ? <Navigate to="/" /> : <Login />} />
+        <Route path="/sign-up" element={user ? <Navigate to="/" /> : <Login />} />
         <Route path="/" element={!user ? <Login /> : <Layout />}>
           <Route index element={<Feed />} />
           <Route path="messages" element={<Messages />} />
@@ -101,6 +106,7 @@ const App = () => {
           <Route path="profile/:profileId" element={<Profile />} />
           <Route path="create-post" element={<CreatePost />} />
         </Route>
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </>
   );

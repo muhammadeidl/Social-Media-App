@@ -23,15 +23,15 @@ const PostCard = ({ post, onPostDeleted }) => {
   );
 
   const [likes, setLikes] = useState(
-    Array.isArray(post.likes_count) ? post.likes_count : []
+    Array.isArray(post?.likes_count) ? post.likes_count : []
   );
 
   const [isSaved, setIsSaved] = useState(false);
 
   const [showComments, setShowComments] = useState(false);
-  const [commentsCount, setCommentsCount] = useState(post.comments_count || 0);
+  const [commentsCount, setCommentsCount] = useState(post?.comments_count || 0);
 
-  const [sharesCount, setSharesCount] = useState(post.shares_count || 0);
+  const [sharesCount, setSharesCount] = useState(post?.shares_count || 0);
   const [showMenu, setShowMenu] = useState(false);
 
   const [showReactions, setShowReactions] = useState(false);
@@ -50,14 +50,17 @@ const PostCard = ({ post, onPostDeleted }) => {
   const [showRepostMenu, setShowRepostMenu] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [quoteContent, setQuoteContent] = useState("");
-  const [repostsCount, setRepostsCount] = useState(Array.isArray(post.reposts_count) ? post.reposts_count.length : 0);
-  const [isReposted, setIsReposted] = useState(Array.isArray(post.reposts_count) && post.reposts_count.includes(currentUser?._id));
+  const [repostsCount, setRepostsCount] = useState(Array.isArray(post?.reposts_count) ? post.reposts_count.length : 0);
+  const [isReposted, setIsReposted] = useState(Array.isArray(post?.reposts_count) && post.reposts_count.includes(currentUser?._id));
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const menuRef = useRef(null);
+
+  // حماية: إذا لم يكن المنشور موجوداً لا تعرض شيئاً (بعد كل الـ hooks)
+  if (!post) return null;
 
   useEffect(() => {
     if (currentUser?.saved_posts?.includes(post._id)) {
@@ -320,7 +323,7 @@ const PostCard = ({ post, onPostDeleted }) => {
      }
   };
 
-  const isLiked = Array.isArray(likes) && likes.includes(currentUser._id);
+  const isLiked = Array.isArray(likes) && likes.includes(currentUser?._id);
 
   // If it's a pure repost, the main content is actually the repost_of post
   const isPureRepost = post.post_type === "repost" && post.repost_of;
@@ -336,17 +339,17 @@ const PostCard = ({ post, onPostDeleted }) => {
       {isPureRepost && (
          <div 
            className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium mb-1 cursor-pointer w-fit hover:underline"
-           onClick={() => navigate(`/profile/${post.user._id}`)}
+           onClick={() => navigate(`/profile/${post.user?._id}`)}
          >
              <Repeat className="w-4 h-4" />
-             <span>{post.user.full_name} Reposted</span>
+             <span>{post.user?.full_name} Reposted</span>
          </div>
       )}
 
       {/* ---------- User Info ---------- */}
       <div className="flex justify-between items-start">
         <div
-            onClick={() => navigate(`/profile/${displayPost.user._id}`)}
+            onClick={() => navigate(`/profile/${displayPost.user?._id}`)}
             className="inline-flex items-center gap-3 cursor-pointer"
         >
             <img
@@ -373,7 +376,7 @@ const PostCard = ({ post, onPostDeleted }) => {
             </button>
             {showMenu && (
                 <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-md shadow-lg border border-gray-100 dark:border-slate-700 z-10 py-1">
-                     {currentUser._id === post.user._id && (
+                     {currentUser?._id === post.user?._id && (
                         <>
                            <button 
                               onClick={() => { setIsEditing(true); setShowMenu(false); }}
@@ -501,7 +504,7 @@ const PostCard = ({ post, onPostDeleted }) => {
               alt=""
               onClick={() => setViewImageSrc(img)}
               className={`w-full h-64 object-cover rounded-lg border border-gray-100 dark:border-slate-800 cursor-pointer hover:opacity-95 transition-opacity
-              ${displayPost.image_urls.length === 1 ? "col-span-2 h-auto max-h-[500px]" : ""}`}
+              ${(displayPost.image_urls?.length ?? 0) === 1 ? "col-span-2 h-auto max-h-[500px]" : ""}`}
             />
           ))}
       </div>

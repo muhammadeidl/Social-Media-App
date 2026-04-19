@@ -82,6 +82,8 @@ const Login = () => {
   >
 
     <SignIn
+      routing="hash"
+      forceRedirectUrl="/"
       appearance={{
         baseTheme: "dark",
         variables: {

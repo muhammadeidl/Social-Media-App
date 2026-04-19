@@ -17,10 +17,11 @@ const userSchema = new mongoose.Schema(
     following: [{ type: String, ref: "User" }],
     connections: [{ type: String, ref: "User" }],
     saved_posts: [{ type: String, ref: "Post" }],
+    lastSeen: { type: Date, default: Date.now },
   },
   { timestamps: true, minimize: false }
 );
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 export default User;
