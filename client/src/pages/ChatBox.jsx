@@ -164,11 +164,17 @@ const ChatBox = () => {
                   alt={user?.full_name}
                   className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border border-gray-100 shadow-sm group-hover:ring-2 ring-indigo-100 transition-all"
                 />
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+                <span className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full ${user?.isOnline ? "bg-green-500" : "bg-gray-400"}`}></span>
               </div>
               <div>
                 <p className="font-bold text-gray-800 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{user?.full_name}</p>
-                <p className="text-xs text-green-600 font-medium">Online</p>
+                {user?.isOnline ? (
+                  <p className="text-xs text-green-600 font-medium">Online</p>
+                ) : (
+                  <p className="text-xs text-gray-500 font-medium">
+                    Last seen {user?.lastSeen ? moment(user.lastSeen).fromNow() : "long ago"}
+                  </p>
+                )}
               </div>
             </Link>
         </div>
@@ -211,18 +217,37 @@ const ChatBox = () => {
               <p className="text-xs">Start the conversation</p>
            </div>
         ) : (
-          messages
-            .toSorted((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-            .map((message, index) => {
+          (() => {
+            const sorted = [...messages].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            const rendered = [];
+            let lastDateLabel = "";
+
+            sorted.forEach((message, index) => {
+              const msgDate = moment(message.createdAt);
+              let dateLabel = msgDate.format("LL");
+              if (msgDate.isSame(moment(), "day")) dateLabel = "Today";
+              else if (msgDate.isSame(moment().subtract(1, "days"), "day")) dateLabel = "Yesterday";
+
+              if (dateLabel !== lastDateLabel) {
+                rendered.push(
+                  <div key={`date-${dateLabel}`} className="flex justify-center my-6">
+                    <span className="px-4 py-1 bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 text-[11px] font-bold rounded-full shadow-sm">
+                      {dateLabel}
+                    </span>
+                  </div>
+                );
+                lastDateLabel = dateLabel;
+              }
+
               const fromId = typeof message.from_user_id === "object" ? message.from_user_id?._id : message.from_user_id;
               const isCurrentUser = fromId === currentUserID;
              
-              // Check if previous message was from the same user to group them visually (no tail)
-              const previousMsg = index > 0 ? messages.toSorted((a,b) => new Date(a.createdAt) - new Date(b.createdAt))[index - 1] : null;
+              // Check if previous message was from the same user to group them visually
+              const previousMsg = index > 0 ? sorted[index - 1] : null;
               const prevFromId = previousMsg ? (typeof previousMsg.from_user_id === "object" ? previousMsg.from_user_id?._id : previousMsg.from_user_id) : null;
               const isConsecutive = prevFromId === fromId;
 
-              return (
+              rendered.push(
                 <div
                   key={message._id || index}
                   className={`flex flex-col max-w-[85%] sm:max-w-[70%] ${
@@ -260,7 +285,9 @@ const ChatBox = () => {
                   </span>
                 </div>
               );
-            })
+            });
+            return rendered;
+          })()
         )}
       </div>
 
