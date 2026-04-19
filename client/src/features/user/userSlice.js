@@ -53,7 +53,22 @@ export const updateUser = createAsyncThunk(
 const userSlice = createSlice({
   name: "user",
   initialState,
-  reducers: {},
+  reducers: {
+    // تحديث saved_posts في الـ Redux مباشرة عند الحفظ أو الإلغاء
+    toggleSavedPost: (state, action) => {
+      const postId = action.payload;
+      if (!state.value) return;
+      const saved = state.value.saved_posts || [];
+      const idx = saved.findIndex((p) => (p._id || p) === postId);
+      if (idx !== -1) {
+        // إلغاء الحفظ
+        state.value.saved_posts = saved.filter((_, i) => i !== idx);
+      } else {
+        // حفظ جديد — نضيف الـ ID فقط (الـ profile سيعيد الجلب)
+        state.value.saved_posts = [...saved, postId];
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchUser.pending, (state) => {
@@ -84,4 +99,5 @@ const userSlice = createSlice({
   },
 });
 
+export const { toggleSavedPost } = userSlice.actions;
 export default userSlice.reducer;

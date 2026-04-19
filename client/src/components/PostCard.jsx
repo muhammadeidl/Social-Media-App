@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { BadgeCheck, Heart, MessageCircle, Share2, MoreVertical, Trash2, Bookmark, Send, Sparkles, Loader2, Edit, Repeat } from "lucide-react";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { toggleSavedPost } from "../features/user/userSlice";
 import api from "../api/axios";
 import { useAuth } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
@@ -16,6 +17,7 @@ const PostCard = ({ post, onPostDeleted, onPostUnliked, onPostUnsaved }) => {
   const navigate = useNavigate();
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const currentUser = useSelector((state) => state.user.value);
+  const dispatch = useDispatch();
 
   const postWithHashtags = (post?.content || "").replace(
     /(#[\w]+)/g,
@@ -157,6 +159,8 @@ const PostCard = ({ post, onPostDeleted, onPostUnliked, onPostUnsaved }) => {
               const newSavedState = !isSaved;
               setIsSaved(newSavedState);
               toast.success(data.message);
+              // تحديث Redux فوراً حتى تظهر الأيقونة صحيحة عند التنقل للبروفايل
+              dispatch(toggleSavedPost(post._id));
               // إذا ألغى الحفظ → أخبر الصفحة الأم لإخفاء المنشور فوراً
               if (!newSavedState && onPostUnsaved) {
                 onPostUnsaved(post._id);
