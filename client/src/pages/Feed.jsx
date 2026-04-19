@@ -8,6 +8,8 @@ import RightSidebar from "../components/RightSidebar";
 import { useAuth } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
 import api from "../api/axios";
+import ErrorBoundary from "../components/ErrorBoundary";
+import Loading from "../components/Loading";
 
 const Feed = () => {
   const [feeds, setFeeds] = useState([]);
@@ -36,7 +38,9 @@ const Feed = () => {
     fetchFeeds();
   }, []);
 
-  return !loading ? (
+  if (loading) return <Loading />;
+
+  return (
     <div className="h-full overflow-y-scroll py-10 xl:pr-5 flex items-start justify-center gap-6 xl:gap-8 px-4 lg:px-8">
       {/* Main Content Area */}
       <div className="w-full max-w-2xl shrink-0">
@@ -45,7 +49,9 @@ const Feed = () => {
           <QuickPostComposer onSuccess={fetchFeeds} />
           <div className="space-y-6">
             {feeds.map((post) => (
-              <PostCard key={post._id} post={post} />
+              <ErrorBoundary key={post._id}>
+                <PostCard post={post} />
+              </ErrorBoundary>
             ))}
           </div>
         </div>
@@ -54,7 +60,7 @@ const Feed = () => {
       {/* Right Sidebar Area */}
       <RightSidebar />
     </div>
-  ) : null;
+  );
 };
 
 export default Feed;
