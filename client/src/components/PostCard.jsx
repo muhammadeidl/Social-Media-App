@@ -26,6 +26,14 @@ const PostCard = ({ post, onPostDeleted }) => {
     Array.isArray(post?.likes_count) ? post.likes_count : []
   );
 
+  // reactions: { userId: emoji }
+  const [reactionsMap, setReactionsMap] = useState(
+    post?.reactions ? (post.reactions instanceof Map ? Object.fromEntries(post.reactions) : post.reactions) : {}
+  );
+
+  // تحديد التفاعل الحالي للمستخدم عند تحميل المنشور
+  const userExistingReaction = currentUser?._id ? reactionsMap[currentUser._id] : null;
+
   const [isSaved, setIsSaved] = useState(false);
 
   const [showComments, setShowComments] = useState(false);
@@ -35,7 +43,9 @@ const PostCard = ({ post, onPostDeleted }) => {
   const [showMenu, setShowMenu] = useState(false);
 
   const [showReactions, setShowReactions] = useState(false);
-  const [activeReaction, setActiveReaction] = useState("👍");
+  const [activeReaction, setActiveReaction] = useState(
+    userExistingReaction || "👍"
+  );
   const [commentText, setCommentText] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
@@ -85,24 +95,18 @@ const PostCard = ({ post, onPostDeleted }) => {
     try {
       const { data } = await api.post(
         "/api/post/like",
-        { postId: post._id },
+        { postId: post._id, reaction: emoji },
         { headers: { Authorization: `Bearer ${await getToken()}` } }
       );
 
       if (data.success) {
-        // We only show success toast for liking once to avoid spam, or not at all since UI updates instantly
-        setLikes((prev) => {
-          if (prev.includes(currentUser._id)) {
-            return prev.filter((id) => id !== currentUser._id);
-          } else {
-            return [...prev, currentUser._id];
-          }
-        });
+        setLikes(data.likes_count || []);
+        if (data.reactions) setReactionsMap(data.reactions);
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error?.message || "Failed to react");
     }
   };
 
@@ -323,7 +327,10 @@ const PostCard = ({ post, onPostDeleted }) => {
      }
   };
 
-  const isLiked = Array.isArray(likes) && likes.includes(currentUser?._id);
+  // التحقق إذا كان المستخدم الحالي قد تفاعل مع المنشور
+  const isLiked = Array.isArray(likes) && currentUser?._id && likes.includes(currentUser._id);
+  // نوع التفاعل المحفوظ
+  const myReaction = currentUser?._id ? (reactionsMap[currentUser._id] || "👍") : "👍";
 
   // If it's a pure repost, the main content is actually the repost_of post
   const isPureRepost = post.post_type === "repost" && post.repost_of;

@@ -160,7 +160,7 @@ export const likePost = async (req, res) => {
       return res.json({ success: false, message: "Unauthorized" });
     }
 
-    const { postId } = req.body;
+    const { postId, reaction = "👍" } = req.body;
     if (!postId) {
       return res.json({ success: false, message: "postId is required" });
     }
@@ -177,16 +177,19 @@ export const likePost = async (req, res) => {
     const alreadyLiked = post.likes_count.includes(userId);
 
     if (alreadyLiked) {
+      // Remove like and reaction
       post.likes_count = post.likes_count.filter((u) => u !== userId);
+      post.reactions.delete(userId);
     } else {
+      // Add like and store reaction emoji
       post.likes_count.push(userId);
+      post.reactions.set(userId, reaction);
     }
 
     post.post_type = post.post_type || "text";
-
     await post.save();
 
-    // ✅ إرسال إشعار لصاحب المنشور
+    // Send notification to post owner
     if (!alreadyLiked && post.user.toString() !== userId) {
       const notification = await Notification.create({
         recipient: post.user,
@@ -205,7 +208,8 @@ export const likePost = async (req, res) => {
     return res.json({
       success: true,
       message: alreadyLiked ? "Post unliked" : "Post liked",
-      likes_count: post.likes_count.length,
+      likes_count: post.likes_count,
+      reactions: Object.fromEntries(post.reactions), // Convert Map to plain object
     });
   } catch (error) {
     console.log(error);

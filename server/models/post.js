@@ -13,6 +13,7 @@ const postSchema = new mongoose.Schema(
 
     comments_count: { type: Number, default: 0 },
     likes_count: [{ type: String, ref: "User" }],
+    reactions: { type: Map, of: String, default: {} }, // userId → emoji
     
     // Repost/Quote support
     reposts_count: [{ type: String, ref: "User" }],

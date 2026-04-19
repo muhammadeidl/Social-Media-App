@@ -78,8 +78,8 @@ const UserCard = ({ user }) => {
         </div>
 
         {user.location && (
-          <div className="flex items-center justify-center gap-1 mt-3 px-2 py-1 bg-gray-50 dark:bg-slate-800 rounded-md text-xs text-gray-500 dark:text-gray-400 w-full truncate">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
+          <div className="flex items-center justify-center gap-1 mt-3 px-2 py-1 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800/50 rounded-md text-xs text-indigo-600 dark:text-indigo-300 w-full truncate">
+            <MapPin className="w-3.5 h-3.5 shrink-0 text-indigo-400" />
             <span className="truncate">{user.location}</span>
           </div>
         )}
@@ -88,7 +88,7 @@ const UserCard = ({ user }) => {
       <div className="p-4 pt-0 border-t border-gray-50/50 dark:border-slate-800 mt-auto flex flex-col gap-2">
         <button
           onClick={handleFollow}
-          className={`w-full py-2 rounded-lg flex justify-center items-center gap-2 font-medium text-sm transition-all
+          className={`w-full py-2 rounded-lg flex justify-center items-center gap-2 font-medium text-sm transition-all cursor-pointer
           ${isFollowing 
             ? "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700" 
             : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm active:scale-95"
