@@ -171,8 +171,17 @@ const Profile = () => {
           {activeTab === "likes" && (
              <div className="space-y-4">
                {likedPosts.length > 0 ? (
-                 likedPosts.map((post) => (
-                   <PostCard key={post._id} post={post} />
+                 [...likedPosts].reverse().map((post) => (
+                   <PostCard
+                     key={post._id}
+                     post={post}
+                     onPostDeleted={(postId) =>
+                       setLikedPosts((prev) => prev.filter((p) => p._id !== postId))
+                     }
+                     onPostUnliked={(postId) =>
+                       setLikedPosts((prev) => prev.filter((p) => p._id !== postId))
+                     }
+                   />
                  ))
                ) : (
                  <div className="text-center py-10 text-gray-500">
