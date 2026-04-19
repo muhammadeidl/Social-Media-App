@@ -125,7 +125,20 @@ const Profile = () => {
              <div className="space-y-4">
                {user?.saved_posts?.length > 0 ? (
                  [...user.saved_posts].reverse().map((post) => (
-                   post && <PostCard key={post._id} post={post} />
+                   post && (
+                     <PostCard
+                       key={post._id}
+                       post={post}
+                       onPostUnsaved={(postId) => {
+                         setUser((prev) => ({
+                           ...prev,
+                           saved_posts: prev.saved_posts.filter((p) =>
+                             (p._id || p) !== postId
+                           ),
+                         }));
+                       }}
+                     />
+                   )
                  ))
                ) : (
                  <div className="text-center py-10 text-gray-500">
@@ -133,7 +146,7 @@ const Profile = () => {
                  </div>
                )}
              </div>
-          )}
+           )}
 
           {/* MEDIA TAB */}
           {activeTab === "media" && (
