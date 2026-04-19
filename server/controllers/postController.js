@@ -2,6 +2,8 @@ import fs from "fs";
 import imageKit from "../configs/imageKit.js";
 import Post from "../models/post.js";
 import User from "../models/User.js";
+import Notification from "../models/notification.js";
+import { sendEvent } from "../utils/sse.js";
 import { GoogleGenAI } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -183,6 +185,22 @@ export const likePost = async (req, res) => {
     post.post_type = post.post_type || "text";
 
     await post.save();
+
+    // ✅ إرسال إشعار لصاحب المنشور
+    if (!alreadyLiked && post.user.toString() !== userId) {
+      const notification = await Notification.create({
+        recipient: post.user,
+        sender: userId,
+        type: "like",
+        related_id: postId,
+      });
+
+      const populatedNotification = await Notification.findById(notification._id).populate(
+        "sender",
+        "full_name username profile_picture"
+      );
+      sendEvent(post.user.toString(), populatedNotification, "notification");
+    }
 
     return res.json({
       success: true,

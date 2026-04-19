@@ -73,6 +73,10 @@ const App = () => {
             toast.success(`New message from ${notification.sender.full_name}`);
         } else if (notification.type === "connection_accepted") {
             toast.success(`${notification.sender.full_name} is now connected with you!`);
+        } else if (notification.type === "like") {
+            toast.success(`${notification.sender.full_name} liked your post`);
+        } else if (notification.type === "comment") {
+            toast.success(`${notification.sender.full_name} commented on your post`);
         }
       });
 

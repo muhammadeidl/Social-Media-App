@@ -1,6 +1,8 @@
 import Comment from "../models/comment.js";
 import Post from "../models/post.js";
 import User from "../models/User.js";
+import Notification from "../models/notification.js";
+import { sendEvent } from "../utils/sse.js";
 import { GoogleGenAI } from "@google/genai";
 
 // Initialize Gemini SDK
@@ -60,12 +62,29 @@ export const addComment = async (req, res) => {
     await post.save();
 
     // رجّع مع بيانات المستخدم (حتى تعرض الاسم والصورة)
-    const user = await User.findById(userId).select(
+    const userData = await User.findById(userId).select(
       "full_name username profile_picture"
     );
+
+    // ✅ إرسال إشعار لصاحب المنشور
+    if (post.user.toString() !== userId) {
+      const notification = await Notification.create({
+        recipient: post.user,
+        sender: userId,
+        type: "comment",
+        related_id: postId,
+      });
+
+      const populatedNotification = await Notification.findById(notification._id).populate(
+        "sender",
+        "full_name username profile_picture"
+      );
+      sendEvent(post.user.toString(), populatedNotification, "notification");
+    }
+
     return res.json({
       success: true,
-      comment: { ...comment.toObject(), user },
+      comment: { ...comment.toObject(), user: userData },
     });
   } catch (err) {
     console.log(err);
