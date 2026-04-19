@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const reactions = ["👍", "❤️", "😂", "😲", "😢", "😡"];
 
-const PostCard = ({ post, onPostDeleted }) => {
+const PostCard = ({ post, onPostDeleted, onPostUnliked }) => {
   const navigate = useNavigate();
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const currentUser = useSelector((state) => state.user.value);
@@ -100,8 +100,14 @@ const PostCard = ({ post, onPostDeleted }) => {
       );
 
       if (data.success) {
-        setLikes(data.likes_count || []);
+        const updatedLikes = data.likes_count || [];
+        setLikes(updatedLikes);
         if (data.reactions) setReactionsMap(data.reactions);
+
+        // إذا أزال المستخدم تفاعله → أخبر الصفحة الأم لإخفاء المنشور فوراً
+        if (isLiked && !updatedLikes.includes(currentUser?._id) && onPostUnliked) {
+          onPostUnliked(post._id);
+        }
       } else {
         toast.error(data.message);
       }
